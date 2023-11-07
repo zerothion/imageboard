@@ -5,6 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/zerothion/imageboard/internal/delivery"
+	"github.com/zerothion/imageboard/internal/delivery/rest"
 	"github.com/zerothion/imageboard/internal/repo"
 )
 
@@ -16,5 +17,6 @@ func main() {
 	s := delivery.NewHTTP(delivery.Repos{
 		UserRepo: repo.NewUserRepoStub(),
 	})
+	rest.AddUserHandlers(s)
 	s.ServeDefault()
 }
