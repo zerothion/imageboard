@@ -86,6 +86,16 @@ func ErrorAuthRequired(format string, args ...any) error {
 	}
 }
 
+func ErrorConflict(format string, args ...any) error {
+	if len(args) > 0 {
+		format = fmt.Sprintf(format, args)
+	}
+	return TaggedError{
+		Tag: ETConflict,
+		Msg: format,
+	}
+}
+
 func ErrorBadRequest(format string, args ...any) error {
 	if len(args) > 0 {
 		format = fmt.Sprintf(format, args)
