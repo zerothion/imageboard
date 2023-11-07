@@ -9,6 +9,13 @@ import (
 
 type Handler func(w http.ResponseWriter, r *http.Request) error
 
+func NotImplementedHandler(w http.ResponseWriter, r *http.Request) error {
+	w.WriteHeader(http.StatusNotImplemented)
+	w.Write([]byte("This handler is yet to be implemented >_<"))
+	slog.Warn("An unimplemented handler was called", "method", r.Method, "URL", r.URL.Redacted())
+	return nil
+}
+
 func (h Handler) AsHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
