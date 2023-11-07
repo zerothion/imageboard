@@ -34,6 +34,12 @@ func (s *userService) Create(ctx context.Context, user *entity.User) error {
 		return ErrorBadRequest("Login must be atleast 3 character long")
 	}
 
+	salt, err := generateSalt()
+	if err != nil {
+		return err
+	}
+	user.Password = string(hashPassword([]byte(user.Password), salt))
+
 	err = s.userRepo.Store(ctx, user)
 	return err
 }
