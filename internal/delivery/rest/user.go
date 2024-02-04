@@ -15,8 +15,8 @@ type userHandlers struct {
 	userService domain.UserService
 }
 
-func AddUserHandlers(s *delivery.ServerHTTP) {
-	h := userHandlers{s.UserService}
+func AddUserHandlers(s *delivery.ServerHTTP, userService domain.UserService) {
+	h := userHandlers{userService}
 
 	s.Get("/api/users", delivery.NotImplementedHandler)
 	s.Post("/api/user", h.CreateUser)

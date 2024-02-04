@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/zerothion/imageboard/internal/delivery"
 	"github.com/zerothion/imageboard/internal/delivery/rest"
-	"github.com/zerothion/imageboard/internal/repo"
+	"github.com/zerothion/imageboard/internal/domain"
 	"github.com/zerothion/imageboard/internal/repo/postgres"
 )
 
@@ -37,9 +38,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	s := delivery.NewHTTP(delivery.Repos{
-		UserRepo: postgres.NewUserRepo(db),
-	})
-	rest.AddUserHandlers(s)
-	s.ServeDefault()
+	const addr = ":80"
+	s := delivery.NewHTTP()
+	userRepo := postgres.NewUserRepo(db)
+	userService := domain.NewUserService(userRepo)
+
+	rest.AddUserHandlers(s, userService)
+	slog.Info("Listening for HTTP", "addr", addr)
+	http.ListenAndServe(addr, s)
 }
