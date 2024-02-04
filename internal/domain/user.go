@@ -31,7 +31,7 @@ func (s *userService) GetByID(ctx context.Context, id uuid.UUID) (entity.User, e
 
 func (s *userService) Create(ctx context.Context, user *entity.User) error {
 	if len(user.Login) < 3 {
-		return ErrorBadRequest("Login must be atleast 3 character long")
+		return ErrorUnprocessableContent("Login must be atleast 3 character long")
 	}
 
 	salt, err := generateSalt()
