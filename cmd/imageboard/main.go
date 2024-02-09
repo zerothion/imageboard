@@ -38,12 +38,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	const addr = ":80"
-	s := delivery.NewHTTP()
 	userRepo := postgres.NewUserRepo(db)
 	userService := domain.NewUserService(userRepo)
 
-	rest.AddUserHandlers(s, userService)
-	slog.Info("Listening for HTTP", "addr", addr)
-	http.ListenAndServe(addr, s)
+	mux := delivery.NewServeMux()
+	rest.AddUserHandlers(mux, userService)
+
+	s := &http.Server{
+		Addr:    ":80",
+		Handler: mux,
+	}
+	slog.Info("Listening for HTTP", "addr", s.Addr)
+	s.ListenAndServe()
 }

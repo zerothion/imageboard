@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/zerothion/imageboard/internal/delivery"
 	"github.com/zerothion/imageboard/internal/domain"
@@ -15,18 +14,18 @@ type userHandlers struct {
 	userService domain.UserService
 }
 
-func AddUserHandlers(s *delivery.ServerHTTP, userService domain.UserService) {
+func AddUserHandlers(s *delivery.ServeMuxWrapper, userService domain.UserService) {
 	h := userHandlers{userService}
 
-	s.Get("/api/users", delivery.NotImplementedHandler)
-	s.Post("/api/user", h.CreateUser)
-	s.Get("/api/user/{id}", h.GetUserById)
-	s.Delete("/api/user/{id}", h.DeleteUser)
-	s.Patch("/api/user/{id}", delivery.NotImplementedHandler)
+	s.Handle("GET /api/users", delivery.NotImplementedHandler)
+	s.Handle("GET /api/user/{id}", h.GetUserById)
+	s.Handle("POST /api/user", h.CreateUser)
+	s.Handle("DELETE /api/user/{id}", h.DeleteUser)
+	s.Handle("PATCH /api/user/{id}", delivery.NotImplementedHandler)
 }
 
 func (h *userHandlers) GetUserById(w http.ResponseWriter, r *http.Request) error {
-	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		return domain.ErrorBadRequest("Failed to parse user id - %s", err.Error())
 	}
@@ -76,7 +75,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) error {
-	id := chi.URLParam(r, "id")
+	id := r.PathValue("id")
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return domain.ErrorBadRequest("Failed to parse user id - %s", err.Error())
