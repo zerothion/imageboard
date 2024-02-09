@@ -38,7 +38,7 @@ func (s *userService) Create(ctx context.Context, user *entity.User) error {
 	if err != nil {
 		return err
 	}
-	user.Password = string(hashPassword([]byte(user.Password), salt))
+	user.Password = hashPassword([]byte(user.Password), salt)
 
 	err = s.userRepo.Store(ctx, user)
 	return err

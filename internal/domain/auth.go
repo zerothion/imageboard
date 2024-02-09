@@ -3,6 +3,7 @@ package domain
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/base64"
 
 	"golang.org/x/crypto/argon2"
 )
@@ -13,15 +14,19 @@ func generateSalt() (salt []byte, err error) {
 	return
 }
 
-func hashPassword(password []byte, salt []byte) []byte {
+func hashPassword(password []byte, salt []byte) string {
 	key := argon2.IDKey(password, salt, 1, 64*1024, 4, 32)
 	key = append(key, salt...)
-	return key
+	return base64.StdEncoding.EncodeToString(key)
 }
 
-func verifyPassword(password []byte, encodedPassword []byte) bool {
-	keyExpected := encodedPassword[:32]
-	salt := encodedPassword[32:]
+func verifyPassword(password []byte, encodedPassword string) bool {
+	decodedPassword, err := base64.StdEncoding.DecodeString(encodedPassword)
+	if err != nil {
+		return false
+	}
+	keyExpected := decodedPassword[:32]
+	salt := decodedPassword[32:]
 	key := argon2.IDKey(password, salt, 1, 64*1024, 4, 32)
 	return bytes.Equal(key, keyExpected)
 }
