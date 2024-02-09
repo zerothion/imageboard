@@ -15,5 +15,5 @@ CREATE TABLE users(
     -- === CONSTRAINTS === --
     FOREIGN KEY (user_id)
         REFERENCES entities(entity_id)
-        ON DELETE SET NULL
+        ON DELETE CASCADE
 );
