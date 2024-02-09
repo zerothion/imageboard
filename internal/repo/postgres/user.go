@@ -55,9 +55,9 @@ func (u *userRepo) Store(ctx context.Context, user *entity.User) error {
 	row := tx.QueryRow(ctx, `
         INSERT INTO entities
             DEFAULT VALUES
-            RETURNING entity_id
+            RETURNING entity_id, created_at
     `)
-	err = row.Scan(&user.ID)
+	err = row.Scan(&user.ID, &user.CreatedAt)
 	if err != nil {
 		return err
 	}
