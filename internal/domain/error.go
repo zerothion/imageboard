@@ -14,6 +14,7 @@ const (
 	ETConflict
 	ETBadRequest
 	ETUnprocessableContent
+	ETNotImplemented
 )
 
 type TaggedError struct {
@@ -39,6 +40,8 @@ func (t ErrorTag) ToString() string {
 		return "Bad Request"
 	case ETUnprocessableContent:
 		return "Unprocessable Content"
+	case ETNotImplemented:
+		return "Not Implemented"
 	}
 	return "<Invalid Tag>"
 }
@@ -57,6 +60,8 @@ func (t ErrorTag) ToHTTPStatus() int {
 		return http.StatusBadRequest
 	case ETUnprocessableContent:
 		return http.StatusUnprocessableEntity
+	case ETNotImplemented:
+		return http.StatusNotImplemented
 	}
 	return http.StatusInternalServerError
 }
@@ -117,6 +122,16 @@ func ErrorUnprocessableContent(format string, args ...interface{}) error {
 	}
 	return TaggedError{
 		Tag: ETUnprocessableContent,
+		Msg: format,
+	}
+}
+
+func ErrorNotImplemented(format string, args ...interface{}) error {
+	if len(args) > 0 {
+		format = fmt.Sprintf(format, args)
+	}
+	return TaggedError{
+		Tag: ETNotImplemented,
 		Msg: format,
 	}
 }
