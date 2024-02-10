@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -21,6 +22,38 @@ func NewUserRepo(db *pgxpool.Pool) repo.UserRepo {
 
 type userRepo struct {
 	db *pgxpool.Pool
+}
+
+func (u *userRepo) Fetch(ctx context.Context, before time.Time, limit uint64, offset uint64) ([]entity.User, error) {
+	rows, err := u.db.Query(
+		ctx, `
+        SELECT
+            e.created_at, e.deleted_at,
+            u.user_id, u.name
+        FROM users u
+        INNER JOIN entities e
+            ON u.user_id = e.entity_id
+        WHERE e.created_at <= $1 AND (e.deleted_at IS NULL OR e.deleted_at > $1)
+        ORDER BY e.created_at DESC
+        LIMIT $2
+        OFFSET $3
+        `, before, limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	users := make([]entity.User, 0)
+	for rows.Next() {
+		var user entity.User
+		err = rows.Scan(&user.CreatedAt, &user.DeletedAt, &user.ID, &user.Name)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (u *userRepo) GetById(ctx context.Context, id uuid.UUID) (entity.User, error) {

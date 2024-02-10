@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -10,6 +11,7 @@ import (
 )
 
 type UserService interface {
+	Fetch(ctx context.Context, before time.Time, limit uint64, offset uint64) ([]entity.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (entity.User, error)
 	Create(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id uuid.UUID) error
@@ -23,6 +25,13 @@ func NewUserService(userRepo repo.UserRepo) UserService {
 	return &userService{
 		userRepo,
 	}
+}
+
+func (s *userService) Fetch(ctx context.Context, before time.Time, limit uint64, offset uint64) ([]entity.User, error) {
+	if limit > 200 {
+		limit = 200
+	}
+	return s.userRepo.Fetch(ctx, before, limit, offset)
 }
 
 func (s *userService) GetByID(ctx context.Context, id uuid.UUID) (entity.User, error) {

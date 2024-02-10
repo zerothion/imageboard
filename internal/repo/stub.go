@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/zerothion/imageboard/internal/entity"
@@ -15,6 +16,10 @@ var (
 
 // --- repo.UserRepo ---
 type userRepoStub struct{}
+
+func (*userRepoStub) Fetch(ctx context.Context, before time.Time, limit uint64, offset uint64) ([]entity.User, error) {
+	return nil, fmt.Errorf("UserRepo.Fetch %w", ErrStubUsed)
+}
 
 func (r *userRepoStub) GetById(ctx context.Context, id uuid.UUID) (entity.User, error) {
 	return entity.User{}, fmt.Errorf("UserRepo.GetById %w", ErrStubUsed)
@@ -35,4 +40,3 @@ func (r *userRepoStub) Delete(ctx context.Context, id uuid.UUID) error {
 func NewUserRepoStub() UserRepo {
 	return &userRepoStub{}
 }
-

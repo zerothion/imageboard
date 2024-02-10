@@ -3,6 +3,8 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/zerothion/imageboard/internal/delivery"
@@ -17,11 +19,53 @@ type userHandlers struct {
 func AddUserHandlers(s *delivery.ServeMuxWrapper, userService domain.UserService) {
 	h := userHandlers{userService}
 
-	s.Handle("GET /api/users", delivery.NotImplementedHandler)
+	s.Handle("GET /api/users", h.ListUsers)
 	s.Handle("GET /api/user/{id}", h.GetUserById)
 	s.Handle("POST /api/user", h.CreateUser)
 	s.Handle("DELETE /api/user/{id}", h.DeleteUser)
 	s.Handle("PATCH /api/user/{id}", delivery.NotImplementedHandler)
+}
+
+func (h *userHandlers) ListUsers(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	offset := uint64(0)
+	if raw := r.URL.Query().Get("offset"); raw != "" {
+		offset, err = strconv.ParseUint(raw, 10, 64)
+		if err != nil {
+			return domain.ErrorBadRequest("Failed to parse `offset` - must be a valid uint64")
+		}
+	}
+
+	limit := uint64(50)
+	if raw := r.URL.Query().Get("limit"); raw != "" {
+		limit, err = strconv.ParseUint(raw, 10, 64)
+		if err != nil {
+			return domain.ErrorBadRequest("Failed to parse `limit` - must be a valid uint64")
+		}
+	}
+
+	before := time.Now()
+	if raw := r.URL.Query().Get("before"); raw != "" {
+		val, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil {
+			return domain.ErrorBadRequest("Failed to parse `before` - must be a unix timestamp (int64)")
+		}
+		before = time.Unix(val, 0)
+	}
+
+	users, err := h.userService.Fetch(r.Context(), before, limit, offset)
+	if err != nil {
+		return err
+	}
+
+	result, err := json.Marshal(users)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(result)
+	return nil
 }
 
 func (h *userHandlers) GetUserById(w http.ResponseWriter, r *http.Request) error {
@@ -33,8 +77,14 @@ func (h *userHandlers) GetUserById(w http.ResponseWriter, r *http.Request) error
 	if err != nil {
 		return err
 	}
-	user_json, _ := json.Marshal(user)
-	w.Write(user_json)
+
+	result, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(result)
 	return nil
 }
 
@@ -70,6 +120,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(result)
 	return nil
 }
