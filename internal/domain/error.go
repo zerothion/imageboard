@@ -68,7 +68,7 @@ func (t ErrorTag) ToHTTPStatus() int {
 
 func ErrorNotFound(format string, args ...interface{}) error {
 	if len(args) > 0 {
-		format = fmt.Sprintf(format, args)
+		format = fmt.Sprintf(format, args...)
 	}
 	return TaggedError{
 		Tag: ETNotFound,
@@ -78,7 +78,7 @@ func ErrorNotFound(format string, args ...interface{}) error {
 
 func ErrorForbidden(format string, args ...interface{}) error {
 	if len(args) > 0 {
-		format = fmt.Sprintf(format, args)
+		format = fmt.Sprintf(format, args...)
 	}
 	return TaggedError{
 		Tag: ETForbidden,
@@ -88,7 +88,7 @@ func ErrorForbidden(format string, args ...interface{}) error {
 
 func ErrorUnauthorized(format string, args ...interface{}) error {
 	if len(args) > 0 {
-		format = fmt.Sprintf(format, args)
+		format = fmt.Sprintf(format, args...)
 	}
 	return TaggedError{
 		Tag: ETUnauthorized,
@@ -98,7 +98,7 @@ func ErrorUnauthorized(format string, args ...interface{}) error {
 
 func ErrorConflict(format string, args ...interface{}) error {
 	if len(args) > 0 {
-		format = fmt.Sprintf(format, args)
+		format = fmt.Sprintf(format, args...)
 	}
 	return TaggedError{
 		Tag: ETConflict,
@@ -118,7 +118,7 @@ func ErrorBadRequest(format string, args ...interface{}) error {
 
 func ErrorUnprocessableContent(format string, args ...interface{}) error {
 	if len(args) > 0 {
-		format = fmt.Sprintf(format, args)
+		format = fmt.Sprintf(format, args...)
 	}
 	return TaggedError{
 		Tag: ETUnprocessableContent,
@@ -128,7 +128,7 @@ func ErrorUnprocessableContent(format string, args ...interface{}) error {
 
 func ErrorNotImplemented(format string, args ...interface{}) error {
 	if len(args) > 0 {
-		format = fmt.Sprintf(format, args)
+		format = fmt.Sprintf(format, args...)
 	}
 	return TaggedError{
 		Tag: ETNotImplemented,
