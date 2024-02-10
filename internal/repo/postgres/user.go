@@ -29,7 +29,8 @@ func (u *userRepo) Fetch(ctx context.Context, before time.Time, limit uint64, of
 		ctx, `
         SELECT
             e.created_at, e.deleted_at,
-            u.user_id, u.name
+            u.user_id, u.name,
+            u.handle
         FROM users u
         INNER JOIN entities e
             ON u.user_id = e.entity_id
@@ -46,7 +47,11 @@ func (u *userRepo) Fetch(ctx context.Context, before time.Time, limit uint64, of
 	users := make([]entity.User, 0)
 	for rows.Next() {
 		var user entity.User
-		err = rows.Scan(&user.CreatedAt, &user.DeletedAt, &user.ID, &user.Name)
+		err = rows.Scan(
+			&user.CreatedAt, &user.DeletedAt,
+			&user.ID, &user.Name,
+			&user.Handle,
+		)
 		if err != nil {
 			return users, err
 		}
@@ -62,7 +67,8 @@ func (u *userRepo) GetById(ctx context.Context, id uuid.UUID) (entity.User, erro
         SELECT
             e.created_at, e.deleted_at,
             u.user_id, u.name,
-            u.login, u.password
+            u.email,
+            u.handle, u.password
         FROM users u
         INNER JOIN entities e
             ON u.user_id = e.entity_id
@@ -74,7 +80,8 @@ func (u *userRepo) GetById(ctx context.Context, id uuid.UUID) (entity.User, erro
 	err := row.Scan(
 		&user.CreatedAt, &user.DeletedAt,
 		&user.ID, &user.Name,
-		&user.Login, &user.Password,
+		&user.Email,
+		&user.Handle, &user.Password,
 	)
 	return user, err
 }
@@ -97,17 +104,18 @@ func (u *userRepo) Store(ctx context.Context, user *entity.User) error {
 
 	_, err = tx.Exec(
 		ctx, `
-        INSERT INTO users (user_id, name, login, password)
-            VALUES ($1, $2, $3, $4)`,
+        INSERT INTO users (user_id, name, email, handle, password)
+            VALUES ($1, $2, $3, $4, $5)`,
 		user.ID,
 		user.Name,
-		user.Login,
+		user.Email,
+		user.Handle,
 		user.Password,
 	)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" { // 23505 - Unique Violation
-			return domain.ErrorConflict("Login is already taken!")
+			return domain.ErrorConflict("The handle @%s is already taken!", user.Handle)
 		}
 		return err
 	}

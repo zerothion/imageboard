@@ -89,9 +89,9 @@ func (h *userHandlers) GetUserById(w http.ResponseWriter, r *http.Request) error
 }
 
 func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) error {
-	login := r.PostFormValue("login")
-	if login == "" {
-		return domain.ErrorBadRequest("`login` is required for creating a new user")
+	handle := r.PostFormValue("handle")
+	if handle == "" {
+		return domain.ErrorBadRequest("`handle` is required for creating a new user")
 	}
 
 	password := r.PostFormValue("password")
@@ -100,13 +100,17 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	name := r.PostFormValue("name")
-	if name == "" {
-		name = login
+
+	var email *string
+	if val := r.PostFormValue("email"); val != "" {
+		email = &val
+		// todo: validate email?
 	}
 
 	user := entity.User{
 		Name:     name,
-		Login:    login,
+		Email:    email,
+		Handle:   handle,
 		Password: password,
 	}
 	err := h.userService.Create(r.Context(), &user)
@@ -119,8 +123,8 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	w.Write(result)
 	return nil
 }

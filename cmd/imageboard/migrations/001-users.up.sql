@@ -8,11 +8,11 @@ CREATE TABLE users(
     user_id UUID  UNIQUE  NOT NULL  PRIMARY KEY,
     name    TEXT,
 
-    -- Auth --
-    login    TEXT  UNIQUE,
+    handle   TEXT UNIQUE,
+    email    TEXT,
     password TEXT,
 
-    -- === CONSTRAINTS === --
+    -- Constraints --
     FOREIGN KEY (user_id)
         REFERENCES entities(entity_id)
         ON DELETE CASCADE

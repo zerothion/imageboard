@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,9 +39,15 @@ func (s *userService) GetByID(ctx context.Context, id uuid.UUID) (entity.User, e
 	return s.userRepo.GetById(ctx, id)
 }
 
+var IsValidHandle = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]*(?:[-_][a-zA-Z0-9]+)*$`).MatchString
+
 func (s *userService) Create(ctx context.Context, user *entity.User) error {
-	if len(user.Login) < 3 {
-		return ErrorUnprocessableContent("Login must be atleast 3 character long")
+	if len(user.Handle) < 3 {
+		return ErrorUnprocessableContent("Handle must be atleast 3 character long")
+	}
+	if !IsValidHandle(user.Handle) {
+		return ErrorUnprocessableContent(`Handle must match this regex: ^[a-zA-Z][a-zA-Z0-9]*(?:[-_][a-zA-Z0-9]+)*$`)
+		//todo: improve clarity /\ (split the error into multiple)
 	}
 
 	salt, err := generateSalt()
@@ -54,5 +61,5 @@ func (s *userService) Create(ctx context.Context, user *entity.User) error {
 }
 
 func (s *userService) Delete(ctx context.Context, id uuid.UUID) error {
-    return s.userRepo.Delete(ctx, id)
+	return s.userRepo.Delete(ctx, id)
 }
